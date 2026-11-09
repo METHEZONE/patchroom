@@ -1,0 +1,32 @@
+{
+  "id": "payco-2.0.0",
+  "provider": "PayCo",
+  "package": "payco",
+  "vendorPath": "vendor/payco",
+  "from": "1.8.2",
+  "to": "2.0.0",
+  "released": "2026-11-09",
+  "title": "Charges API is now Payments API",
+  "summary": "PayCo 2.0 replaces the Charges API with the Payments API. Amounts move from floating-point major units to integer minor units, currency becomes required, and the `status` field is renamed to `state`.",
+  "breaking": [
+    {
+      "id": "charges-create",
+      "before": "payco.charges.create(amount, { currency, customer, description })",
+      "after": "payco.payments.create({ amount_minor, currency, customer, description })",
+      "notes": "`amount` (float, dollars) becomes `amount_minor` (integer, cents). `currency` is now REQUIRED (ISO 4217, lowercase)."
+    },
+    {
+      "id": "charges-retrieve",
+      "before": "payco.charges.retrieve(id)",
+      "after": "payco.payments.retrieve(id)",
+      "notes": "Returned object is a `payment` with id prefix `pay_`. `amount` is replaced by `amount_minor`."
+    },
+    {
+      "id": "status-to-state",
+      "before": "charge.status",
+      "after": "payment.state",
+      "notes": "Field renamed. Values unchanged: 'succeeded' | 'pending' | 'failed'."
+    }
+  ],
+  "detect": ["charges\\.create\\(", "charges\\.retrieve\\(", "\\.status\\b"]
+}

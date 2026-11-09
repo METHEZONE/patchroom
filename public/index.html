@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Patchroom — multiplayer Dependabot for APIs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/">
+      <span class="mark"><i></i><i></i><i></i></span>
+      <span>Patchroom</span>
+    </a>
+    <div class="crumb" id="crumb"></div>
+    <div class="spacer"></div>
+    <div class="presence" id="presence"></div>
+    <button class="me" id="me" title="Change your name"></button>
+  </header>
+
+  <main id="lobby" class="lobby hidden">
+    <section class="hero">
+      <div class="eyebrow">Multiplayer Dependabot for APIs</div>
+      <h1>When an API breaks, your team<br/>fixes it <em>together</em> — with an agent.</h1>
+      <p class="sub">An API provider ships a breaking change. Patchroom finds every affected repo, opens a <b>live shared room</b>, and an agent migrates the code while anyone on either side watches, steers, and approves. Then it opens a real PR with green CI.</p>
+    </section>
+    <section class="grid2">
+      <div class="card change-card" id="changeCard"></div>
+      <div class="card">
+        <div class="card-h"><span>Live rooms</span><span class="pill" id="roomCount">0</span></div>
+        <div id="roomList" class="room-list"><div class="empty">No rooms yet. Publish a change →</div></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="roomView" class="room hidden">
+    <section class="stage">
+      <div class="stage-h">
+        <div>
+          <div class="eyebrow" id="roomEyebrow">Room</div>
+          <h2 id="roomTitle">—</h2>
+        </div>
+        <div class="status" id="status"><span class="dot"></span><span>connecting</span></div>
+      </div>
+      <ol class="timeline" id="timeline"></ol>
+      <div id="tail" class="thinking hidden"><span></span><span></span><span></span></div>
+    </section>
+
+    <aside class="side">
+      <div class="card files">
+        <div class="card-h"><span>Files</span><span class="pill" id="fileCount">0</span></div>
+        <ul id="fileList"></ul>
+      </div>
+      <div class="card chat">
+        <div class="card-h"><span>Room</span><span class="watching" id="watching"></span></div>
+        <div class="msgs" id="msgs"></div>
+        <div class="gate hidden" id="gate">
+          <div><b>Tests green.</b> Ship it?</div>
+          <button id="approveBtn">Approve → open PR</button>
+        </div>
+        <form id="chatForm" class="composer">
+          <input id="chatInput" autocomplete="off" placeholder="Steer the agent…" />
+          <button type="submit" aria-label="Send">↵</button>
+        </form>
+        <div class="hint">The agent reads new messages at its next step. <code>/approve</code> opens the PR.</div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="toast hidden" id="toast"></div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

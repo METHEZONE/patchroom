@@ -1,0 +1,19 @@
+{
+  "name": "patchroom",
+  "version": "0.1.0",
+  "description": "Multiplayer Dependabot for APIs: when an API ships a breaking change, an agent migrates your code in a live room your whole team can watch and steer.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.mjs",
+    "demo": "node scripts/demo.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "^1.58.1"
+  }
+}
