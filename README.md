@@ -4,6 +4,12 @@
 
 ![Patchroom room: agent timeline, live diffs, two people steering](docs/steering.png)
 
+**Live result from the demo run:** [METHEZONE/patchroom-demo-shop#5](https://github.com/METHEZONE/patchroom-demo-shop/pull/5). The PayCo 2.0 migration across 6 files includes the test Junho asked for mid-run, approved in the room by Min, with GitHub Actions green. A real two-browser recording is in `recordings/side-by-side.mp4` (generated locally by `npm run demo`).
+
+| Two people, one room | Human gate → PR + CI |
+|---|---|
+| ![](docs/gate.png) | ![](docs/pr.png) |
+
 > Built in one day at the c0mpiled-17 Seoul hackathon (2026-11-09). It combines two YC Fall 2026 Requests for Startups:
 > - **[Self-Maintaining APIs](https://www.ycombinator.com/rfs)** (Harsha Gaddipati): "Dependabot for APIs". When Stripe ships a breaking change, an agent fixes every customer's code and opens the PR.
 > - **[Multiplayer AI](https://www.ycombinator.com/rfs)** (Aaron Epstein): agent sessions should be shared and live, not private chats. The idea is inspired by [yc-software/qm](https://github.com/yc-software/qm).

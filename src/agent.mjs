@@ -93,7 +93,7 @@ export async function runAgent(room, { workRoot } = {}) {
     for (const m of msgs) {
       room.emitEvent('steer-start', { msgId: m.id, name: m.name });
       const prompt = [
-        { role: 'system', content: 'You are Patchroom, a code-migration agent working in a shared live room with humans. A teammate just sent you a steering message mid-run. Decide how it changes your work. Reply with ONLY compact JSON: {"ack": "<one or two friendly sentences addressed to them by name, saying concretely what you will do>", "files": ["<repo-relative paths to (re)edit or create>"]}. List the MINIMUM set of files: usually 1-2. Prefer editing an existing file over creating a new one; e.g. put a new test into the existing test file that already covers that module. Never list vendor/ files.' },
+        { role: 'system', content: 'You are Patchroom, a code-migration agent working in a shared live room with humans. A teammate just sent you a steering message mid-run. Decide how it changes your work. Reply with ONLY compact JSON: {"ack": "<one or two friendly sentences addressed to them by name, saying concretely what you will do>", "files": ["<repo-relative paths to (re)edit or create>"]}. List the MINIMUM set of files: usually 1-2. Prefer editing an existing file over creating a new one; e.g. put a new test into the existing test file that already covers that module. Never list vendor/ files. A requested new test goes into exactly ONE test file.' },
         { role: 'user', content: `Migration:\n${changelogText(change)}\n\nRepo files:\n${tree.join('\n')}\n\nFiles already patched: ${[...files].filter(([, s]) => s === 'patched' || s === 'created').map(([p]) => p).join(', ') || '(none yet)'}\n\nMessage from ${m.name}: "${m.text}"` },
       ];
       let ack = { ack: `On it, ${m.name}.`, files: [] };
@@ -116,6 +116,14 @@ export async function runAgent(room, { workRoot } = {}) {
         ack.files = [...files].filter(([, s]) => s === 'patched' || s === 'created').map(([p]) => p);
       }
       ack.files = ack.files.map((f) => f.replace(/^\.?\//, '')).filter((f) => !f.includes('..') && !f.startsWith('vendor/'));
+      const tests = ack.files.filter((x) => /(^|\/)test|\.test\./.test(x));
+      if (tests.length > 1 && /\btests?\b/i.test(m.text)) {
+        // one new test → one test file (prefer the file covering the module it mentions)
+        const keep = tests.find((t) => m.text.toLowerCase().split(/\W+/).some((w) => w.length > 4 && t.includes(w.slice(0, 5)))) || tests.find((t) => fs.existsSync(path.join(dir, t))) || tests[0];
+        ack.files = ack.files.filter((x) => !tests.includes(x) || x === keep);
+      }
+      const inst = room.instructions.find((i) => i.id === m.id);
+      if (inst) inst.files = ack.files;
       room.emitEvent('ack', { msgId: m.id, name: m.name, text: ack.ack, files: ack.files, quote: m.text });
       for (const f of ack.files) enqueue(f, 'revisit');
     }
@@ -193,12 +201,12 @@ export async function runAgent(room, { workRoot } = {}) {
       files.set(f, 'patching');
       pushFiles();
       const sp = step('patch', `${exists ? 'Patching' : 'Creating'} ${f}`, { file: f });
-      const instr = room.instructions.map((i) => `- ${i.name}: ${i.text}`).join('\n');
+      const instr = room.instructions.map((i) => `- ${i.name}: ${i.text}${i.files?.length ? ` [targets: ${i.files.join(', ')}${i.files.includes(f) ? ' ← THIS FILE' : ' — not this file, do not duplicate'}]` : ''}`).join('\n');
       const ctx = [...files.keys()].filter((p) => p !== f && fs.existsSync(path.join(dir, p))).slice(0, 10)
         .map((p) => `--- ${p}\n${fs.readFileSync(path.join(dir, p), 'utf8')}`).join('\n');
       const { text } = await chat(
         [
-          { role: 'system', content: 'You are Patchroom, a careful code-migration agent. Rewrite ONE file so it works with the new SDK. Make the minimal change; keep style, comments and exports. Convert money exactly (use Math.round when turning a float into minor units; prefer existing integer cents directly). Follow the team instructions — they come from humans watching you live and override your defaults. Output ONLY the full new file in one ```js code block, nothing else.' },
+          { role: 'system', content: 'You are Patchroom, a careful code-migration agent. Rewrite ONE file so it works with the new SDK. Make the minimal change; keep style, comments and exports. Convert money exactly (use Math.round when turning a float into minor units; prefer existing integer cents directly). Follow the team instructions — they come from humans watching you live and override your defaults. Each instruction says which file(s) it targets: apply it ONLY when this file is a target; never add a test that already exists in another file shown in context. Output ONLY the full new file in one ```js code block, nothing else.' },
           { role: 'user', content: `Migration notes:\n${changelogText(change)}\n\nNew SDK source (${change.vendorPath}/index.js):\n${fs.readFileSync(path.join(sdkSrc, 'index.js'), 'utf8')}\n\nOther files in the repo for context:\n${ctx}\n\nTeam instructions:\n${instr || '(none)'}\n\nFILE TO ${exists ? 'REWRITE' : 'CREATE'}: ${f}\n${exists ? before : '(new file)'}` },
         ],
         { maxTokens: 3000, onDelta: (d) => room.emitEvent('stream', { stepId: sp.id, delta: d }) },

@@ -3,11 +3,13 @@
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const BASE = process.env.PATCHROOM_URL || 'http://localhost:4317';
 const OUT = path.resolve('recordings');
 const DOCS = path.resolve('docs');
-const HEADLESS = process.env.HEADED ? false : true;
+// Headed by default: headless Chrome leaves a gray band at the bottom of recordVideo frames.
+const HEADLESS = process.env.HEADLESS === '1';
 const STEER = process.env.STEER || 'Also add a test that a pro renewal charges exactly 2900 cents.';
 const SIZE = { width: 1280, height: 800 };
 fs.mkdirSync(OUT, { recursive: true });
@@ -81,3 +83,16 @@ fs.renameSync(vJ, path.join(OUT, 'junho.webm'));
 console.log('videos', path.join(OUT, 'min.webm'), path.join(OUT, 'junho.webm'));
 console.log('PR_URL', pr);
 fs.writeFileSync(path.join(OUT, 'offset.json'), JSON.stringify({ junhoStartsAfterMs: tJ - t0, pr, roomUrl }));
+
+// Side-by-side video: Min (left) | Junho (right), Junho padded until he joined.
+try {
+  // Both recordings end together, so align their ends (more accurate than wall-clock start times).
+  const dur = (f) => Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f]).toString().trim());
+  const pad = Math.max(0, dur(path.join(OUT, 'min.webm')) - dur(path.join(OUT, 'junho.webm'))).toFixed(2);
+  execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', path.join(OUT, 'min.webm'), '-i', path.join(OUT, 'junho.webm'), '-filter_complex',
+    `[0:v]scale=960:-2,setsar=1[a];[1:v]tpad=start_duration=${pad}:start_mode=add:color=0x0d0a08,scale=960:-2,setsar=1[b];[a][b]hstack=inputs=2:shortest=0,format=yuv420p[v]`,
+    '-map', '[v]', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '22', '-movflags', '+faststart', path.join(OUT, 'side-by-side.mp4')]);
+  console.log('side-by-side', path.join(OUT, 'side-by-side.mp4'));
+} catch (e) {
+  console.log('ffmpeg compose skipped:', e.message);
+}
