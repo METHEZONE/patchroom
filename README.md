@@ -4,7 +4,9 @@
 
 ![Patchroom room: agent timeline, live diffs, two people steering](docs/steering.png)
 
-**Live result from the demo run:** [METHEZONE/patchroom-demo-shop#5](https://github.com/METHEZONE/patchroom-demo-shop/pull/5). The PayCo 2.0 migration across 6 files includes the test Junho asked for mid-run, approved in the room by Min, with GitHub Actions green. A real two-browser recording is in `recordings/side-by-side.mp4` (generated locally by `npm run demo`).
+**Live result from the demo run:** [METHEZONE/patchroom-demo-shop#5](https://github.com/METHEZONE/patchroom-demo-shop/pull/5). The PayCo 2.0 migration across 6 files includes the test Junho asked for mid-run, approved in the room by Min, with GitHub Actions green. Real two-browser recording (no audio, 74 s): [`docs/demo-side-by-side.mp4`](docs/demo-side-by-side.mp4).
+
+![demo](docs/demo.gif)
 
 | Two people, one room | Human gate → PR + CI |
 |---|---|

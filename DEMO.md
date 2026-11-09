@@ -13,7 +13,7 @@ cd ~/Projects/patchroom && npm start          # → http://localhost:4317
 - Record the screen with QuickTime (⌘⇧5 → *Record Entire Screen*), or use the backup recording below.
 - The run takes about 70 seconds: about 45 s of agent work, plus about 20 s of CI after approval. Keep the narration moving.
 
-> **Backup:** `recordings/side-by-side.mp4` is a real two-browser run (Playwright, about 80 s, no audio), made with `npm run demo`. If the live run misbehaves, voice over this file instead.
+> **Backup:** `docs/demo-side-by-side.mp4` is a real two-browser run (Playwright, about 80 s, no audio), made with `npm run demo`. If the live run misbehaves, voice over this file instead.
 
 ---
 
